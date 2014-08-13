@@ -1,9 +1,3 @@
-%% LaTeX Beamer presentation template (requires beamer package)
-%% see http://bitbucket.org/rivanvx/beamer/wiki/Home
-%% idea contributed by H. Turgut Uyar
-%% template based on a template by Till Tantau
-%% this template is still evolving - it might differ in future releases!
-
 \documentclass{beamer}
 
 \mode<presentation>
@@ -16,8 +10,7 @@
 \usepackage[english]{babel}
 \usepackage[latin1]{inputenc}
 
-% font definitions, try \usepackage{ae} instead of the following
-% three lines if you don't like this look
+
 \usepackage{mathptmx}
 \usepackage[scaled=.90]{helvet}
 \usepackage{courier}
@@ -28,39 +21,16 @@
 
 \title{}
 
-%\subtitle{}
+\author{Salman A. Khokhar}
 
-% - Use the \inst{?} command only if the authors have different
-%   affiliation.
-%\author{F.~Author\inst{1} \and S.~Another\inst{2}}
-\author{Salman Khokhar}
-
-% - Use the \inst command only if there are several affiliations.
-% - Keep it simple, no one is interested in your street address.
 \institute{%
 Honda Research Institute\\
 }
 
 \date{\today}
 
-
-% This is only inserted into the PDF information catalog. Can be left
-% out.
 \subject{Internship Talk}
 
-
-
-% If you have a file called "university-logo-filename.xxx", where xxx
-% is a graphic format that can be processed by latex or pdflatex,
-% resp., then you can add a logo as follows:
-
-% \pgfdeclareimage[height=0.5cm]{university-logo}{university-logo-filename}
-% \logo{\pgfuseimage{university-logo}}
-
-
-
-% Delete this, if you do not want the table of contents to pop up at
-% the beginning of each subsection:
 \AtBeginSubsection[]
 {
 \begin{frame}<beamer>
@@ -72,7 +42,7 @@ Honda Research Institute\\
 % If you wish to uncover everything in a step-wise fashion, uncomment
 % the following command:
 
-%\beamerdefaultoverlayspecification{<+->}
+\beamerdefaultoverlayspecification{<+->}
 
 \begin{document}
 
@@ -89,62 +59,197 @@ Honda Research Institute\\
 
 \section{Introduction}
 
-\subsection[Short First Subsection Name]{First Subsection Name}
-
 \begin{frame}
-\frametitle{}
-\framesubtitle{Subtitles are optional}
+\frametitle{Problem Description}
 
 \begin{itemize}
-  \item
-  \item
+  \item Risk assessment at intersections
+  \item Prediction of future paths of observed vehicles
 \end{itemize}
 \end{frame}
-\begin{frame}
 
-\end{frame}
-\begin{frame}
-\frametitle{}
+\section{Scenario and Method}
 
-% You can create overlays
+\begin{frame}
+\frametitle{Setting}
+
 \begin{itemize}
-  \item using the \texttt{pause} command:
+  \item At an intersection:
   \begin{itemize}
-    \item First item.
-    \pause
-    \item Second item.
-  \end{itemize}
-  \item using overlay specifications:
-  \begin{itemize}
-    \item<3-> First item.
-    \item<4-> Second item.
-  \end{itemize}
-  \item using the general \texttt{uncover} command:
-  \begin{itemize}
-    \uncover<5->{\item First item.}
-    \uncover<6->{\item Second item.}
+    \item Observe other vehicles at other ends of the intersection
+    \item Estimate their GPS position
+    \item Compyte features using map data
+    \item Make a prediction about their future behavior
   \end{itemize}
 \end{itemize}
 \end{frame}
 
-\section*{Summary}
+\begin{frame}
+\frametitle{Setting}
+An ideal scenario:
+\begin{itemize}
+  \item V2V communication between our vehicle and observed vehicles
+  \item Transfer of GPS position information
+\end{itemize}
+Our setting:
+\begin{itemize}
+  \item unavailable: V2V communication
+  \item available: High precision GPS unit
+  \item Experimental setting assumptions:
+  \begin{itemize}
+    \item The vehicle with a GPS unit is the 'observed' vehicle
+    \item Data from the observed vehicle is transferred to us
+    \item We have to predict future behavior of the driven vehicle
+   	\item Our own vehicle is at the same intersection, but
+   	\item Our exact position is irrelevant for the prediction
+   \end{itemize}
+\end{itemize}
+\end{frame}
 
 \begin{frame}
-\frametitle<presentation>{Summary}
+\frametitle{Data collection}
+	Required data:
+	\begin{itemize}
+	\item Map information
+	\item High precision GPS information
+	\end{itemize}
+	Available options:
+	\begin{itemize}
+	   \item KITTI dataset and open street maps
+	   \item Zenrin and our own collected data 
+	\end{itemize}
+\end{frame}
 
+
+\begin{frame}
+\frametitle{Features}
+	Available information:
+	\begin{itemize}
+	\item Vehicle pose from the CAN bus
+	\begin{itemize}\item only latitude and longitude are used \end{itemize}
+	\item Zenrin map data
+	\end{itemize}
+	Features computed:
+	\begin{itemize}
+	   \item Distance from lane center
+	   \item Distance from intersection
+	   \item Angle between lane orientation and vehicle heading
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Track pre-processing}
+	We get continuous GPS track from one drive
+	\begin{itemize}
+	\item Tracks are clipped at a specified distance from intersection centers
+	\item Stops are detected and removed before model learning or testing
+	\end{itemize}
+	% show example video of track with and without stop (on GmapsFX GUI)
+	
+\end{frame}
+
+\begin{frame}
+\frametitle{Learning model}
+	\begin{itemize}
+	  \item A time series of vector data
+	  \begin{itemize}
+	    \item time series may be of unequal lengths due to:
+	    \begin{itemize}
+	      \item stops
+	      \item unequal velocity
+	      \item intersection structure
+	      \end{itemize}
+	      \end{itemize}
+	  \item Event classes
+	  \begin{itemize}
+	    \item Left turn
+	    \item Right turn
+	    \item Straight
+	   \end{itemize}
+	   \item Train a hidden markov model for each event
+	   \item Compute probabilities at test time from trained models
+	\end{itemize}
+\end{frame}
+
+\section{Experiments and Results}
+\subsection[HMM]{Hidden Markov Models}
+\begin{frame}
+\frametitle{HMM training}
+	\begin{itemize}
+	  \item Feature computation
+	  \begin{itemize}
+	    \item Begins 15 meters from intersection
+	    \item Ends 15 meters into intersection
+	   \end{itemize}
+	   \item Separate HMM model trained for each event class
+	   \item Each model trained using a single gaussian per feature per state
+	   \item All gaussians initialized to large variances with zero means
+	   \item Training performed using a 80-20 split
+	  \item  
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+
+\frametitle{HMM classification performance}
+% insert plot of HMM performance over distance	
+
+\end{frame}
+
+\begin{frame}
+
+\frametitle{Feature comparison}
+% insert plot of HMM using individual features or combinations
+
+\end{frame}
+
+\begin{frame}
+
+\frametitle{Hidden states}
+% insert plot of HMM performance over distance with different number of states	
+
+\end{frame}
+
+\begin{frame}
+
+\frametitle{HMM feature input}
+% show feature plots
+
+\end{frame}
+
+\begin{frame}
+
+\frametitle{Event confusion}
+% show confusion matrices	
+
+\end{frame}
+
+\begin{frame}
+
+\frametitle{Demo video}
+% show video of GUI or switch over to demo	
+
+\end{frame}
+
+\subsection[Comparisons]{Comparisons}
+\begin{frame}
+\frametitle{Performance comparison}
+% insert plot of HMM performance over distance	
 \begin{itemize}
-  \item The \alert{first main message} of your talk in one or two lines.
+  \item Rule based decision (baseline)
+  \item SVM
 \end{itemize}
 
-% The following outlook is optional.
-\vskip0pt plus.5fill
-\begin{itemize}
-  \item Outlook
-  \begin{itemize}
-    \item Something you haven't solved.
-    \item Something else you haven't solved.
-  \end{itemize}
-\end{itemize}
+\end{frame}
+
+\section{Summary}
+\begin{frame}
+	Conclusions:
+	\begin{itemize}
+	  \item HMM prediction with given features caps at ~85-88 \%
+	  \item Multi-modal HMM prediction may improve learning
+	  \item We are trying a Dynamic Bayesian Network to improve performance
+	\end{itemize}
 \end{frame}
 
 \end{document}
